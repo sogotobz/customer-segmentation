@@ -1,0 +1,64 @@
+import pandas as pd
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+
+
+# Load the dataset
+df= pd.read_csv(r"C:\Users\sogot\Downloads\Mall_Customers.csv")
+print(df.head())
+print(df.columns)
+print(df.describe())
+print(df.info())
+
+# Data Preprocessing
+X = df.drop(['CustomerID', 'Genre'], axis=1)
+
+# Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+print(X_scaled[:5])
+
+# Applying KMeans Clustering
+kmeans = KMeans(n_clusters=5, random_state=42)
+kmeans.fit(X_scaled)
+df['Cluster'] = kmeans.labels_
+print(df.head())
+
+# Reducing dimensions for visualization using tsne
+tsne = TSNE(n_components=2, random_state=42)
+X_tsne = tsne.fit_transform(X_scaled)
+df['TSNE1'] = X_tsne[:, 0]
+df['TSNE2'] = X_tsne[:, 1]
+
+
+# Visualize the clusters
+plt.figure(figsize=(10,6))
+plt.scatter(df['TSNE1'], df['TSNE2'], c=df['Cluster'], cmap='viridis')
+plt.title('Customer Segmentation using t-SNE')
+plt.xlabel('t-SNE Dimension 1')
+plt.ylabel('t-SNE Dimension 2')
+plt.colorbar(label='Cluster')
+plt.show()
+
+# PCA visualization
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+df['PCA1'] = X_pca[:, 0]
+df['PCA2'] = X_pca[:, 1]
+plt.figure(figsize=(10,6))
+plt.scatter(df['PCA1'], df['PCA2'], c=df['Cluster'], cmap='viridis')
+plt.title('Customer Segmentation using PCA')
+plt.xlabel('PCA Dimension 1')
+plt.ylabel('PCA Dimension 2')
+plt.colorbar(label='Cluster')
+plt.show()
+
+
+# cluster profiling
+cluster_profile = df.groupby('Cluster').mean(numeric_only=True)
+print(cluster_profile)
